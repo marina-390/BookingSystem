@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reservations | Booking System</title>
+
+  <!-- Tailwind CDN + Brand config -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              primary: "#e10e49",
+              light: "#ffffff",
+              dark: "#1e1e1e",
+              blue: "#263f6a",
+              green: "#284e36",
+              orange: "#e37222",
+              rose: "#c24d52",
+            }
+          },
+          boxShadow: {
+            soft: "0 8px 40px rgba(0, 0, 0, 0.45)",
+          }
+        }
+      }
+    }
+  </script>
+  <script type="module" src="/js/reservations.js" defer></script>
+</head>
+
+<body class="min-h-screen flex flex-col bg-brand-light text-brand-dark">
+  <header class="sticky top-0 z-40 bg-brand-dark text-white shadow-soft">
+    <div class="mx-auto max-w-7xl px-6">
+      <div class="flex h-16 items-center justify-between">
+        <a href="/" class="flex items-center gap-3 flex-1">
+          <img src="logo.svg" alt="Booking System" class="h-10 w-10">
+          <div class="leading-tight">
+            <span class="block text-sm font-semibold">
+              Booking System
+            </span>
+            <span class="block text-xs text-white/70">
+              Secure resource booking
+            </span>
+          </div>
+        </a>
+        <nav class="flex items-center gap-3">
+          <a href="/resources" data-auth="user"
+            class="res-link rounded-xl border border-white/20 px-4 py-2 text-sm font-semibold hover:bg-white/10 w-40 text-center cursor-not-allowed pointer-events-none">
+            Resources
+          </a>
+          <a href="/reservations" data-auth="user"
+            class="res-link rounded-xl border border-white/20 px-4 py-2 text-sm font-semibold hover:bg-white/10 w-40 text-center cursor-not-allowed pointer-events-none">
+            Reservations
+          </a>
+          <a href="/register" data-auth="guest" class="auth-link rounded-xl border border-white/20 px-4 py-2 text-sm font-semibold hover:bg-white/10 w-40 text-center">
+            Register
+          </a>
+          <a href="/login" data-auth="guest" class="auth-link rounded-xl border border-white/20 px-4 py-2 text-sm font-semibold hover:bg-white/10 w-40 text-center">
+            Sign in
+          </a>
+          <button onclick="logout()" data-auth="user" class="auth-link hidden rounded-xl bg-brand-primary px-4 py-2 text-sm font-semibold text-white w-40 text-center">
+            Sign out
+          </button>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <main id="mainContent" class="mx-auto max-w-7xl px-6 flex-grow">
+
+    <!-- Page header -->
+    <section class="py-12">
+      <div class="rounded-3xl bg-white p-8 shadow-soft">
+        <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <span class="inline-flex items-center gap-2 rounded-full bg-brand-blue/10 px-4 py-1 text-sm font-semibold text-brand-blue">
+              Reservation management
+            </span>
+            <h1 class="mt-4 text-3xl font-semibold leading-tight">
+              Reservations
+            </h1>
+            <p class="mt-2 max-w-2xl text-sm text-black/70">
+              Manage your reservations and book available resources for your needs.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Form Section -->
+    <section class="pb-16">
+      <div class="grid gap-8 lg:grid-cols-12">
+        <!-- Form -->
+        <div class="lg:col-span-8">
+          <div class="rounded-3xl bg-white p-8 shadow-soft">
+            <h2 class="text-xl font-semibold">Create / Edit Reservation</h2>
+
+            <form id="reservation-form" class="mt-6 space-y-4">
+              <input type="hidden" id="reservation-id" />
+
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-semibold text-black/80 mb-2">Resource</label>
+                  <select id="resourceId" required
+                    class="w-full rounded-xl border border-black/10 px-4 py-2 text-sm focus:outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20">
+                    <option value="" disabled selected>Select a resource...</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-sm font-semibold text-black/80 mb-2">User ID</label>
+                  <input type="number" id="userId" required
+                    class="w-full rounded-xl border border-black/10 px-4 py-2 text-sm focus:outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20" />
+                </div>
+
+                <div>
+                  <label class="block text-sm font-semibold text-black/80 mb-2">Start Time</label>
+                  <input type="datetime-local" id="startTime" required
+                    class="w-full rounded-xl border border-black/10 px-4 py-2 text-sm focus:outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20" />
+                </div>
+
+                <div>
+                  <label class="block text-sm font-semibold text-black/80 mb-2">End Time</label>
+                  <input type="datetime-local" id="endTime" required
+                    class="w-full rounded-xl border border-black/10 px-4 py-2 text-sm focus:outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20" />
+                </div>
+
+                <div>
+                  <label class="block text-sm font-semibold text-black/80 mb-2">Note</label>
+                  <input type="text" id="note"
+                    class="w-full rounded-xl border border-black/10 px-4 py-2 text-sm focus:outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20" />
+                </div>
+
+                <div>
+                  <label class="block text-sm font-semibold text-black/80 mb-2">Status</label>
+                  <select id="status"
+                    class="w-full rounded-xl border border-black/10 px-4 py-2 text-sm focus:outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20">
+                    <option value="active">active</option>
+                    <option value="cancelled">cancelled</option>
+                  </select>
+                </div>
+              </div>
+
+              <button type="submit"
+                class="mt-6 w-full rounded-2xl bg-brand-primary px-6 py-3 text-sm font-semibold text-white shadow-soft hover:bg-brand-dark/80 transition-all duration-200 ease-out">
+                Save Reservation
+              </button>
+            </form>
+
+            <div id="message" class="mt-6 rounded-2xl border px-4 py-3 text-sm hidden">
+              <!-- Message will appear here -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Info Panel -->
+        <aside class="lg:col-span-4">
+          <div class="rounded-3xl bg-white p-8 shadow-soft">
+            <h3 class="text-lg font-semibold">How to make a reservation</h3>
+            <ul class="mt-4 space-y-3 text-sm text-black/70">
+              <li class="flex gap-3">
+                <span class="font-semibold text-brand-primary">1</span>
+                <span>Select a resource from the dropdown menu</span>
+              </li>
+              <li class="flex gap-3">
+                <span class="font-semibold text-brand-primary">2</span>
+                <span>Choose your start and end times (end must be after start)</span>
+              </li>
+              <li class="flex gap-3">
+                <span class="font-semibold text-brand-primary">3</span>
+                <span>Add optional notes about your reservation</span>
+              </li>
+              <li class="flex gap-3">
+                <span class="font-semibold text-brand-primary">4</span>
+                <span>Click "Save Reservation" to confirm</span>
+              </li>
+            </ul>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- Reservations Table Section -->
+    <section class="pb-16">
+      <div class="rounded-3xl bg-white p-8 shadow-soft">
+        <h2 class="text-xl font-semibold">Your Reservations</h2>
+        <p class="mt-1 text-sm text-black/60">
+          View and manage all your current and past reservations.
+        </p>
+
+        <div class="mt-6 overflow-x-auto">
+          <table class="min-w-full text-sm">
+            <thead class="text-left text-black/50 uppercase text-xs border-b border-black/10">
+              <tr>
+                <th class="py-3 px-4 font-semibold">ID</th>
+                <th class="py-3 px-4 font-semibold">Resource</th>
+                <th class="py-3 px-4 font-semibold">User</th>
+                <th class="py-3 px-4 font-semibold">Start</th>
+                <th class="py-3 px-4 font-semibold">End</th>
+                <th class="py-3 px-4 font-semibold">Status</th>
+                <th class="py-3 px-4 font-semibold">Note</th>
+                <th class="py-3 px-4 font-semibold">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="reservations-body" class="divide-y divide-black/10">
+              <!-- Inject rows here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-brand-dark text-white">
+    <div class="mx-auto max-w-7xl px-6 py-8">
+      <p class="text-sm text-white/70">
+        &copy; 2026 Booking System. All rights reserved.
+      </p>
+    </div>
+  </footer>
+
+  <script type="module" src="/js/reservations.js" defer></script>
+</body>
+
+</html>
