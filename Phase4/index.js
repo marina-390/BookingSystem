@@ -34,45 +34,57 @@ app.get('/resources', (req, res) => {
 // --- Postgres pool (reads PG* from .env) ---
 const pool = new Pool({});
 
+// Allowed character pattern (letters, numbers, Finnish letters, spaces only)
+// Matches the client-side validation in resources.js
+const ALLOWED_PATTERN = /^[a-zA-Z0-9äöåÄÖÅ ]+$/;
+
 // --- express-validator rules for the payload ---
 const resourceValidators = [
+  // FIX 1: action must be 'create'
   body('action')
     .trim()
     .isIn(['create']).withMessage("action must be 'create'"),
 
+  // FIX 2: resourceName — added length (5–30) and character pattern validation
+  // Also removed .escape() which was corrupting data with HTML entities instead of rejecting bad input
   body('resourceName')
     .trim()
     .notEmpty().withMessage('resourceName is required')
     .isString().withMessage('resourceName must be a string')
-    .escape(),
+    .isLength({ min: 5, max: 30 }).withMessage('resourceName must be 5–30 characters')
+    .matches(ALLOWED_PATTERN).withMessage('resourceName may only contain letters, numbers, and spaces'),
 
+  // FIX 3: resourceDescription — added character pattern validation to match client-side rules
   body('resourceDescription')
     .trim()
     .notEmpty().withMessage('resourceDescription is required')
     .isString().withMessage('resourceDescription must be a string')
-    .isLength({ min:10, max: 50 }).withMessage('resourceDescription must be 10-50 characters'),
+    .isLength({ min: 10, max: 50 }).withMessage('resourceDescription must be 10–50 characters')
+    .matches(ALLOWED_PATTERN).withMessage('resourceDescription may only contain letters, numbers, and spaces'),
 
   body('resourceAvailable')
     .exists({ checkFalsy: false }).withMessage('resourceAvailable is required')
     .isBoolean().withMessage('resourceAvailable must be boolean')
     .toBoolean(), // coercion
 
+  // FIX 4: resourcePrice — replaced .notEmpty() with .exists() so that 0 (free resource) is accepted
   body('resourcePrice')
-    .notEmpty().withMessage('resourcePrice is required')
+    .exists({ checkNull: true }).withMessage('resourcePrice is required')
     .isFloat({ min: 0 }).withMessage('resourcePrice must be a non-negative number')
     .toFloat(), // coercion
 
+  // FIX 5: resourcePriceUnit — expanded allowed values to match client ('week' and 'month' added)
   body('resourcePriceUnit')
     .exists({ checkFalsy: true }).withMessage('resourcePriceUnit is required')
     .isString().withMessage('resourcePriceUnit must be a string')
     .trim()
-    .isIn(['hour', 'day'])
-    .withMessage("resourcePriceUnit must be 'hour' or 'day'"),
+    .isIn(['hour', 'day', 'week', 'month'])
+    .withMessage("resourcePriceUnit must be 'hour', 'day', 'week', or 'month'"),
 ];
 
-// POST /api/resources -> create (minimal)
+// POST /api/resources -> create
 app.post('/api/resources', resourceValidators, async (req, res) => {
-  // Validate input
+  // FIX 6: Validate input and return meaningful error responses
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({
