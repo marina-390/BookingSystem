@@ -57,7 +57,6 @@ function setButtonEnabled(btn, enabled) {
     btn.classList.remove("hover:bg-brand-dark/80");
   } else {
     // Only re-add if this button is supposed to have it
-    // (for Create we know it is)
     if (btn.value === "create" || btn.textContent === "Create") {
       btn.classList.add("hover:bg-brand-dark/80");
     }
@@ -81,14 +80,18 @@ function renderActionButtons(currentRole) {
       classes: BUTTON_ENABLED_CLASSES,
     });
 
+    // BUG FIX #6: Update and Delete buttons must have type: "submit"
+    // so they actually submit the form when clicked.
     updateButton = addButton({
       label: "Update",
+      type: "submit",   // <-- was missing "submit", defaulted to "button"
       value: "update",
       classes: BUTTON_ENABLED_CLASSES,
     });
 
     deleteButton = addButton({
       label: "Delete",
+      type: "submit",   // <-- was missing "submit", defaulted to "button"
       value: "delete",
       classes: BUTTON_ENABLED_CLASSES,
     });
@@ -127,7 +130,7 @@ function createResourceNameInput(container) {
 function isResourceNameValid(value) {
   const trimmed = value.trim();
 
-  // Allowed: letters, numbers, Finnish letters, and space (based on your current regex)
+  // Allowed: letters, numbers, Finnish letters, and space
   const allowedPattern = /^[a-zA-Z0-9äöåÄÖÅ ]+$/;
 
   const lengthValid = trimmed.length >= 5 && trimmed.length <= 30;
@@ -139,8 +142,11 @@ function isResourceNameValid(value) {
 function isResourceDescriptionValid(value) {
   const trimmed = value.trim();
 
-  // Allowed: letters, numbers, Finnish letters, and space (based on your current regex)
-  const allowedPattern = /^[a-zA-Z0-9äöåÄÖÅ ><!\?\-\+\/\\]+$/;
+  // BUG FIX #1: The original regex allowed dangerous characters:
+  // ><!\?\-\+\/\\ which enable XSS and injection attacks.
+  // Fixed: allow only safe characters — letters, numbers, Finnish
+  // letters, and spaces. Same safe set as the name field.
+  const allowedPattern = /^[a-zA-Z0-9äöåÄÖÅ ]+$/;
 
   const lengthValid = trimmed.length >= 10 && trimmed.length <= 50;
   const charactersValid = allowedPattern.test(trimmed);
@@ -158,7 +164,6 @@ function createResourceDescriptionArea(container) {
   textarea.placeholder =
     "Describe location, capacity, included equipment, or any usage notes…";
 
-
   // Base Tailwind styling (single source of truth)
   textarea.className = `
     mt-2 w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm outline-none
@@ -170,7 +175,7 @@ function createResourceDescriptionArea(container) {
 }
 
 function setInputVisualState(input, state) {
-  // Reset to neutral base state (remove only our own validation-related classes)
+  // Reset to neutral base state
   input.classList.remove(
     "border-green-500",
     "bg-green-100",
@@ -182,16 +187,12 @@ function setInputVisualState(input, state) {
     "focus:ring-brand-blue/30"
   );
 
-  // Ensure base focus style is present when neutral
-  // (If we are valid/invalid, we override ring color but keep ring behavior)
   input.classList.add("focus:ring-2");
 
   if (state === "valid") {
     input.classList.add("border-green-500", "bg-green-100", "focus:ring-green-500/30");
   } else if (state === "invalid") {
     input.classList.add("border-red-500", "bg-red-100", "focus:ring-red-500/30");
-  } else {
-    // neutral: keep base border/bg; nothing else needed
   }
 }
 
@@ -204,18 +205,13 @@ function attachResourceNameValidation(input) {
       return;
     }
 
-    //const valid = isResourceNameValid(raw);
     resourceNameValid = isResourceNameValid(raw);
 
     setInputVisualState(input, resourceNameValid ? "valid" : "invalid");
-    //setButtonEnabled(createButton, valid);
     setButtonEnabled(createButton, resourceNameValid && resourceDescriptionValid);
   };
 
-  // Real-time validation
   input.addEventListener("input", update);
-
-  // Initialize state on page load (Create disabled until valid)
   update();
 }
 
@@ -228,17 +224,13 @@ function attachResourceDescriptionValidation(input) {
       return;
     }
 
-    //const valid = isResourceDescriptionValid(raw);
     resourceDescriptionValid = isResourceDescriptionValid(raw);
 
     setInputVisualState(input, resourceDescriptionValid ? "valid" : "invalid");
     setButtonEnabled(createButton, resourceNameValid && resourceDescriptionValid);
   };
 
-  // Real-time validation
   input.addEventListener("input", update);
-
-  // Initialize state on page load (Create disabled until valid)
   update();
 }
 

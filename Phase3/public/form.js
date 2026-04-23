@@ -1,4 +1,3 @@
-
 // ===============================
 // Form handling for resources page
 // ===============================
@@ -73,6 +72,10 @@ async function onSubmit(event) {
     console.log("Description ➡️ ", data.echo.resourceDescription);
     console.log("Availability ➡️ ", data.echo.resourceAvailable);
     console.log("Price ➡️ ", data.echo.resourcePrice);
+    // BUG FIX #3: Price Unit was never logged to the browser console.
+    // It appeared in the alert (msg) but was completely missing from
+    // the console.log block below — so devtools showed no price unit.
+    console.log("Price unit ➡️ ", data.echo.resourcePriceUnit);
 
     console.log("--------------------------");
     alert(msg);

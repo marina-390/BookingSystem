@@ -56,6 +56,11 @@ app.post("/api/resources", (req, res) => {
   console.log("Action ➡️ ", resourceAction);
   console.log("Name ➡️ ", name);
   console.log("Description ➡️ ", description);
+  // BUG FIX #2 & #5: `available` was never printed to the server log.
+  // The variable was correctly parsed from the request body but then
+  // silently ignored in the console output block. Added it here so the
+  // server terminal shows the availability flag for every request.
+  console.log("Available ➡️ ", available);
   console.log("Price ➡️ ", price);
   console.log("Price unit ➡️ ", unit);
   console.log("--------------------------");
